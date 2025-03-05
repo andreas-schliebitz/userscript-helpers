@@ -51,8 +51,8 @@ class IndexedDB {
     }
 
     async contains(key) {
-        return this.get(key)
-            .then(object => object !== undefined)
+        return this.count(key)
+            .then(count => count > 0)
             .catch(error => {
                 console.error(error);
                 return false; 
@@ -89,6 +89,18 @@ class IndexedDB {
             const tx = db.transaction(this.storeName, "readonly");
             const store = tx.objectStore(this.storeName);
             const request = store.getAllKeys();
+            
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = (event) => reject(event.target.error);
+        });
+    }
+
+    async count() {
+        const db = await this._init();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(this.storeName, "readonly");
+            const store = tx.objectStore(this.storeName);
+            const request = store.count();
             
             request.onsuccess = () => resolve(request.result);
             request.onerror = (event) => reject(event.target.error);
